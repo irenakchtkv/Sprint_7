@@ -5,6 +5,7 @@ from urls import URL
 from generators import generate_courier_data
 
 class TestCreateCourier:
+    
 
     def test_create_courier_success(self, courier_cleanup):
         payload = courier_cleanup['payload']
@@ -17,11 +18,6 @@ class TestCreateCourier:
         assert response.status_code == 201
         assert response.json() == {"ok": True}
 
-# Если сервер вернёт статус 201, но в JSON не окажется ключа 'ok', 
-# строка: response.json()['ok']
-# вызовет KeyError ещё до выполнения assert
-# сообщение об ошибке будет менее информативным,
-# а отметка created останется False, хотя курьер мог быть создан
 
     def test_create_two_same_couriers_fail(self, courier_cleanup):
         payload = courier_cleanup['payload']
