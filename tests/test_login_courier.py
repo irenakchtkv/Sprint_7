@@ -8,6 +8,9 @@ from generators import generate_random_string
 class TestLoginCourier:
 
 
+    @allure.title("Авторизация курьера")
+    @allure.description("Тест проверяет успешную авторизацию курьера с передачей всех обязательных полей. "
+                        "Ожидаемый результат: статус 200, наличие id в теле ответа.")
     def test_login_courier_successful(self, registered_courier):
         payload = registered_courier
 
@@ -19,6 +22,9 @@ class TestLoginCourier:
 
 
     @pytest.mark.parametrize('changed_value', ['login', 'password'])
+    @allure.title("Авторизация курьера c некорректным полем: {changed_value}")
+    @allure.description("Тест проверяет получение ошибки при авторизации курьера с некорректным логином или паролем. "
+                        "Ожидаемый результат: статус 404, тело ответа {'message': 'Учетная запись не найдена'}.")
     def test_login_courier_with_changed_credentials(self, changed_value, registered_courier):
         original_data = registered_courier
 
@@ -33,6 +39,9 @@ class TestLoginCourier:
 
 
     @pytest.mark.parametrize('missing_field', ['login', 'password'])
+    @allure.title("Авторизация курьера без поля: {missing_field}")
+    @allure.description("Тест проверяет получение ошибки при авторизации курьера без логина или пароля. "
+                        "Ожидаемый результат: статус 400, тело ответа {'message': 'Недостаточно данных для входа'}.")
     def test_login_courier_without_required_field(self, missing_field, registered_courier):
         original_data = registered_courier
 
@@ -46,6 +55,9 @@ class TestLoginCourier:
         assert response.json()["message"] == "Недостаточно данных для входа"
 
 
+    @allure.title("Авторизация курьера с несуществующей парой логин-пароль")
+    @allure.description("Тест проверяет получение ошибки при авторизации курьера с несуществующей парой логин-пароль. "
+                        "Ожидаемый результат: статус 404, тело ответа {'message': 'Учетная запись не найдена'}.")
     def test_login_courier_with_non_existent_credentials(self):
         payload = {
             'login': generate_random_string(7),
