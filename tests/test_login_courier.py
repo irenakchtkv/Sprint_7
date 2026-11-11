@@ -8,13 +8,21 @@ from generators import generate_random_string
 class TestLoginCourier:
 
 
+    @allure.step("Отправляем запрос на авторизацию курьера")
+    def login_courier(self, payload):
+        return requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data=payload)
+
+
     @allure.title("Авторизация курьера")
     @allure.description("Тест проверяет успешную авторизацию курьера с передачей всех обязательных полей. "
                         "Ожидаемый результат: статус 200, наличие id в теле ответа.")
     def test_login_courier_successful(self, registered_courier):
-        payload = registered_courier
+        payload = {
+                    'login': registered_courier['login'],
+                    'password': registered_courier['password']
+        }
 
-        response = requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data = payload)
+        response = self.login_courier(payload)
 
         assert response.status_code == 200
         assert 'id' in response.json()
@@ -26,13 +34,16 @@ class TestLoginCourier:
     @allure.description("Тест проверяет получение ошибки при авторизации курьера с некорректным логином или паролем. "
                         "Ожидаемый результат: статус 404, тело ответа {'message': 'Учетная запись не найдена'}.")
     def test_login_courier_with_changed_credentials(self, changed_value, registered_courier):
-        original_data = registered_courier
+        original_data = {
+                        'login': registered_courier['login'],
+                        'password': registered_courier['password']
+        }
 
         payload = original_data.copy()
 
         payload[changed_value] = generate_random_string(5)
 
-        response = requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data = payload)
+        response = self.login_courier(payload)
 
         assert response.status_code == 404
         assert response.json()["message"] == "Учетная запись не найдена"
@@ -43,13 +54,16 @@ class TestLoginCourier:
     @allure.description("Тест проверяет получение ошибки при авторизации курьера без логина или пароля. "
                         "Ожидаемый результат: статус 400, тело ответа {'message': 'Недостаточно данных для входа'}.")
     def test_login_courier_without_required_field(self, missing_field, registered_courier):
-        original_data = registered_courier
+        original_data = {
+                        'login': registered_courier['login'],
+                        'password': registered_courier['password']
+        }
 
         payload = original_data.copy()
 
         del payload[missing_field]
 
-        response = requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data = payload)
+        response = self.login_courier(payload)
 
         assert response.status_code == 400
         assert response.json()["message"] == "Недостаточно данных для входа"
@@ -64,7 +78,7 @@ class TestLoginCourier:
             'password': generate_random_string(8)
         }
 
-        response = requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data = payload)
+        response = self.login_courier(payload)
 
         assert response.status_code == 404
         assert response.json()["message"] == "Учетная запись не найдена"
