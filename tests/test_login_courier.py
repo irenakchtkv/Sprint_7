@@ -1,17 +1,12 @@
 import pytest
-import requests
 import allure
-from urls import URL
 from generators import generate_random_string
+from API_client import APIClient
 
 
 class TestLoginCourier:
 
-
-    @allure.step("Отправляем запрос на авторизацию курьера")
-    def login_courier(self, payload):
-        return requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data=payload)
-
+    client = APIClient()
 
     @allure.title("Авторизация курьера")
     @allure.description("Тест проверяет успешную авторизацию курьера с передачей всех обязательных полей. "
@@ -22,7 +17,7 @@ class TestLoginCourier:
                     'password': registered_courier['password']
         }
 
-        response = self.login_courier(payload)
+        response = self.client.authorize_courier(payload)
 
         assert response.status_code == 200
         assert 'id' in response.json()
@@ -43,7 +38,7 @@ class TestLoginCourier:
 
         payload[changed_value] = generate_random_string(5)
 
-        response = self.login_courier(payload)
+        response = self.client.authorize_courier(payload)
 
         assert response.status_code == 404
         assert response.json()["message"] == "Учетная запись не найдена"
@@ -63,7 +58,7 @@ class TestLoginCourier:
 
         del payload[missing_field]
 
-        response = self.login_courier(payload)
+        response = self.client.authorize_courier(payload)
 
         assert response.status_code == 400
         assert response.json()["message"] == "Недостаточно данных для входа"
@@ -78,7 +73,7 @@ class TestLoginCourier:
             'password': generate_random_string(8)
         }
 
-        response = self.login_courier(payload)
+        response = self.client.authorize_courier(payload)
 
         assert response.status_code == 404
         assert response.json()["message"] == "Учетная запись не найдена"

@@ -1,30 +1,14 @@
 import pytest
-import allure
-import requests
-from urls import URL
 from generators import generate_courier_data
-
-
-@allure.step("Отправляем запрос на регистрацию курьера")
-def register_courier(payload):
-    return requests.post(f"{URL.MAIN_URL}{URL.CREATE_COURIER}", data=payload)
-
-
-@allure.step("Отправляем запрос на авторизацию курьера")
-def authorize_courier(payload):
-    return requests.post(f"{URL.MAIN_URL}{URL.LOGIN_COURIER}", data=payload)
-
-
-@allure.step("Отправляем запрос на удаление курьера")
-def delete_courier(courier_id):
-    return requests.delete(f"{URL.MAIN_URL}{URL.DELETE_COURIER}{courier_id}")
+from API_client import APIClient
 
 
 @pytest.fixture
 def registered_courier():
     courier = generate_courier_data()
+    client = APIClient()
 
-    response = register_courier(courier)
+    response = client.register_courier(courier)
 
     assert response.status_code == 201
     
@@ -35,9 +19,9 @@ def registered_courier():
                 'password': courier['password']
     }
 
-    auth_response = authorize_courier(auth_data)
+    auth_response = client.authorize_courier(auth_data)
     courier_id = auth_response.json()['id']
-    delete_courier(courier_id)
+    client.delete_courier(courier_id)
 
 
 @pytest.fixture
@@ -46,6 +30,7 @@ def courier_cleanup():
         'payload': generate_courier_data(),
         'created': False
     }
+    client = APIClient()
     
     yield courier
 
@@ -56,6 +41,6 @@ def courier_cleanup():
                     'password': courier['payload']['password']
         }
 
-        auth_response = authorize_courier(auth_data)
+        auth_response = client.authorize_courier(auth_data)
         courier_id = auth_response.json()['id']
-        delete_courier(courier_id)
+        client.delete_courier(courier_id)

@@ -1,16 +1,12 @@
 import pytest
-import requests
 import allure
-from urls import URL
 from generators import generate_courier_data
+from API_client import APIClient
 
 
 class TestCreateCourier:
 
-
-    @allure.step("Отправляем запрос на регистрацию курьера")
-    def create_courier(self, payload):
-        return requests.post(f"{URL.MAIN_URL}{URL.CREATE_COURIER}", data=payload)
+    client = APIClient()
 
     @allure.title("Регистрация курьера")
     @allure.description("Тест проверяет успешное создание курьера с передачей всех обязательных полей. "
@@ -18,7 +14,7 @@ class TestCreateCourier:
     def test_create_courier_success(self, courier_cleanup):
         payload = courier_cleanup['payload']
 
-        response = self.create_courier(payload)
+        response = self.client.register_courier(payload)
 
         assert response.status_code == 201
 
@@ -33,7 +29,7 @@ class TestCreateCourier:
     def test_create_two_same_couriers_fail(self, registered_courier):
         payload = registered_courier
 
-        second_response = self.create_courier(payload)
+        second_response = self.client.register_courier(payload)
 
         assert second_response.status_code == 409
         assert second_response.json()['message'] == 'Этот логин уже используется'
@@ -48,7 +44,7 @@ class TestCreateCourier:
 
         del payload[missing_field]
 
-        response = self.create_courier(payload)
+        response = self.client.register_courier(payload)
 
         assert response.status_code == 400
         assert response.json()['message'] == 'Недостаточно данных для создания учетной записи'
